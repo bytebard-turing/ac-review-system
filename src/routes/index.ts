@@ -1,4 +1,4 @@
-import { Application, Router, application } from "express";
+import { Application, NextFunction, Router, application } from "express";
 import { isAuthenticated } from "../middlewares";
 import { AuthRoute } from "../api/auth/auth.route";
 import bodyParser from "body-parser";

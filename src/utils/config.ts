@@ -1,7 +1,7 @@
 export const config = {
-  secret: "erashu212_task_manager_$$$_@@@",
-  apiUrl: "https://localhost:4200",
-  redisServer: "resolved-mongoose-47392.upstash.io",
-  redisPassword: "AbkgAAIncDE5YWZmOWVmZjA4NTA0ODAxYjVhN2NlNmU0ZmNkYzAzNXAxNDczOTI",
-  redisPort: 6379,
+  secret: process.env.SECRET || '',
+  redisServer: process.env.REDIS_SERVER || '',
+  redisPassword: process.env.REDIS_PASSWORD || '',
+  redisPort: process.env.REDIS_PASSWORD || 6379,
+  apiUrl: process.env.API_URL || 'http://localhost:8080'
 };

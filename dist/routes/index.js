@@ -36,10 +36,9 @@ const init = (router, app) => {
     const corsOptions = {
         credentials: true,
         optionsSuccessStatus: 200,
+        origin: ["http://localhost:3000", "https://bytebard-turing.github.io/"],
     };
-    router.use("/api/*", (0, cors_1.default)(corsOptions), (req, res, next) => {
-        next();
-    });
+    router.use("/api/*", (0, cors_1.default)(corsOptions));
     // helmet for route protection
     app.use((0, helmet_1.default)());
     router.use("/api/logout", middlewares_1.isAuthenticated);

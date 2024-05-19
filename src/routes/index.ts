@@ -39,11 +39,10 @@ export const init = (router: Router, app: Application) => {
   const corsOptions = {
     credentials: true,
     optionsSuccessStatus: 200,
+    origin: ["http://localhost:3000", "https://bytebard-turing.github.io/"],
   };
 
-  router.use("/api/*", cors(corsOptions), (req, res, next) => {
-    next();
-  });
+  router.use("/api/*", cors(corsOptions));
 
   // helmet for route protection
   app.use(helmet());
@@ -53,6 +52,6 @@ export const init = (router: Router, app: Application) => {
 
   AuthRoute(router);
   CodeSampleRouter(router);
-  
+
   app.use("/", router);
 };

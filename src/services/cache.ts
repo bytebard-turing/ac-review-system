@@ -1,14 +1,9 @@
-import { RedisClientType, createClient } from "redis";
+import Redis from "ioredis";
 import { config } from "../utils";
 
-let client: RedisClientType;
+let client: Redis;
 export const initiateConnection = async () => {
-  client = createClient({
-    socket: {
-      host: "localhost", // Use the service name of the Redis container
-      port: 6379, // Default Redis port
-    },
-  });
+  client = new Redis(`rediss://default:${config.redisPassword}@${config.redisServer}:${config.redisPort}`);
 
   client.on("error", (err) => {
     console.error("Redis Error:: ", err);

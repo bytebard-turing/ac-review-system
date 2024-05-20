@@ -159,13 +159,45 @@ export const wrapResultWithPermission = (response: any, user: any) => {
 };
 
 export const isFinalReviewer = (email: string, reviewerData: any) => {
-    return email?.includes(reviewerData.finalReviewer)
-}
+  return email?.includes(reviewerData?.finalReviewer);
+};
 
 export const isSecondReviewer = (email: string, reviewerData: any) => {
-    return email?.includes(reviewerData.reviewerTwoAssignee)
-}
+  return email?.includes(reviewerData?.reviewerTwoAssignee);
+};
 
 export const isFirstReviewer = (email: string, reviewerData: any) => {
-    return email?.includes(reviewerData.reviewerOneAssignee)
-}
+  return email?.includes(reviewerData?.reviewerOneAssignee);
+};
+
+export const getReviewerMetadata = (reviewerData: any, email: string) => {
+  if (!reviewerData) return {};
+  const result = {
+    level: 2,
+    reviewStatus: "Pending",
+    reviewComment: "",
+    assignee: "",
+    author: reviewerData.reviewerOneAssignee,
+    authorComment: reviewerData.reviewerOneComment,
+  };
+
+  if (isFinalReviewer(email, reviewerData)) {
+    return {
+      ...result,
+      level: 3,
+      assignee: reviewerData.finalReviewer,
+      reviewComment: reviewerData.finalReviewerComment,
+      reviewStatus: reviewerData.finalReviewerStatus,
+    };
+  }
+  if (isSecondReviewer(email, reviewerData)) {
+    return {
+      ...result,
+      level: 2,
+      assignee: reviewerData.reviewerTwoAssignee,
+      reviewComment: reviewerData.reviewerTwoComment,
+      reviewStatus: reviewerData.reviewerTwoStatus,
+    };
+  }
+  return result;
+};

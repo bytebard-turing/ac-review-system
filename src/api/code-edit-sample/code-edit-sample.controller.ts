@@ -7,6 +7,7 @@ import path from "path";
 import { Storage, File, FileMetadata } from "@google-cloud/storage";
 import {
   getReviewPropMap,
+  getReviewerMetadata,
   getUsernameFromEmail,
   isFinalReviewer,
   isFirstReviewer,
@@ -21,12 +22,10 @@ const bucketName = "augment_ai";
 const fileFilterPredicate = (
   file: File,
   prefix: string,
-  user: string,
   beforeDate: string
 ) => {
-  if (!user) return true;
   const [folderDate, username] = file.name.replace(`${prefix}/`, "").split("_");
-  return user === username && folderDate >= beforeDate;
+  return folderDate >= beforeDate;
 };
 
 class RawCodeSampleController extends Storage {
@@ -48,7 +47,6 @@ class RawCodeSampleController extends Storage {
       fileFilterPredicate(
         file,
         prefix,
-        getUsernameFromEmail(req.decoded?.email),
         moment().add(-7, "days").format("YYYY-MM-DD")
       )
     );
@@ -56,16 +54,23 @@ class RawCodeSampleController extends Storage {
     const result = allFiles.map((file: File) => {
       const name = file.name.replace(`${prefix}/`, "");
       const id = name.split("_").pop()?.split(".")?.[0];
+      const reviewerData = file.metadata.metadata || {};
       return {
         id,
         name: file.name,
-        metadata: file.metadata,
         updated: file.metadata.updated,
+        ...getReviewerMetadata(reviewerData, req.decoded?.email!)
       };
     });
 
+    const createdSamples = result.filter((rec: any) => req.decoded?.email!.includes(rec.author))
+    const reviewRequestedSamples = result.filter((rec: any) => req.decoded?.email!.includes(rec.assignee))
+
     res.status(200).json({
-      data: result,
+      data: {
+        reviewRequestedSamples,
+        createdSamples
+      },
       message: "",
     });
     next();
@@ -132,7 +137,7 @@ class RawCodeSampleController extends Storage {
         };
       }
       if (result) {
-        const { json, metadata } = await this.downloadFile(name);
+        const { json } = await this.downloadFile(name);
         const payload = {
           ...json,
           reviewerData: {
@@ -193,16 +198,13 @@ class RawCodeSampleController extends Storage {
         JSON.stringify(response, null, 2)
       );
 
-      await this.bucket(bucketName).upload(
-        `${tempDir}/${id}.json`,
-        {
-          destination: fileName,
-          metadata: {
-            cacheControl: "no-store", // Set cache-control metadata,
-            metadata: response?.reviewerData,
-          },
-        }
-      );
+      await this.bucket(bucketName).upload(`${tempDir}/${id}.json`, {
+        destination: fileName,
+        metadata: {
+          cacheControl: "no-store", // Set cache-control metadata,
+          metadata: response?.reviewerData,
+        },
+      });
 
       // Delete the file
       fs.unlinkSync(`${tempDir}/${id}.json`);

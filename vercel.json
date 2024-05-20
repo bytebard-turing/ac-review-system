@@ -1,9 +1,10 @@
 {
-  "functions": {
-    "build/api/*.js": {
-      "maxDuration": 60
+  "builds": [
+    {
+      "src": "build/index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",

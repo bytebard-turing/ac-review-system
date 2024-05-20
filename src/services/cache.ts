@@ -4,6 +4,7 @@ import { config } from "../utils";
 let client: Redis.Redis;
 
 export const initiateConnection = async () => {
+  console.log(`Config`, JSON.stringify(config))
   client = new Redis(
     `rediss://default:${config.redisPassword}@${config.redisServer}:${config.redisPort}`
   );

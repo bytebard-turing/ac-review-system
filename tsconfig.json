@@ -1,12 +1,13 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "baseUrl": ".",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": ["es5", "dom"],
     "target": "es6",
     "module": "commonjs",
-    "outDir": "dist",
+    "outDir": "build",
     "strict": true,
     "noImplicitAny": false,
     "esModuleInterop": true,

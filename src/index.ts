@@ -1,6 +1,5 @@
 import express from "express";
-import compression from "compression";
-
+import { config } from 'dotenv'
 import { init } from "./routes";
 import { initiateConnection } from "./services";
 // import middlewares from "./middlewares";
@@ -13,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 init(express.Router(), app);
+config();
 initiateConnection().then(() => {
   app.listen(port, async () => {
     console.log(`Example app listening at http://localhost:${port}`);

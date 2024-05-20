@@ -1,14 +1,18 @@
-import Redis from "ioredis";
+import { createClient, RedisClientType } from "@redis/client";
 import { getConfig } from "../utils";
 
-let client: Redis.Redis;
+let client: RedisClientType;
 
 export const initiateConnection = async () => {
   const config = getConfig();
-  console.log(`Config`, JSON.stringify(config))
-  client = new Redis(
-    `rediss://default:${config.redisPassword}@${config.redisServer}:${config.redisPort}`
-  );
+  client = createClient({
+    url: `rediss://default:${config.redisPassword}@${config.redisServer}:${config.redisPort}`,
+  });
+
+  client.on("error", function (err) {
+    throw err;
+  });
+  await client.connect();
 };
 
 class RawCacheService {

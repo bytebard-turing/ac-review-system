@@ -1,15 +1,10 @@
 {
   "functions": {
-    "build/**/*": {
-      "maxDuration": 300 
+    "build/index.js": {
+      "runtime": "@vercel/node",
+      "maxDuration": 300
     }
   },
-  "builds": [
-    {
-      "src": "build/index.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",

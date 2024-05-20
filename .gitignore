@@ -4,3 +4,4 @@ dist/
 build/
 *.js
 *.js.map
+.env

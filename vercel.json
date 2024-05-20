@@ -2,7 +2,7 @@
   "functions": {
     "build/index.js": {
       "runtime": "@vercel/node",
-      "maxDuration": 300
+      "maxDuration": 60
     }
   },
   "routes": [

@@ -5,7 +5,7 @@ import { CacheService } from "../services";
 
 export const authenticate = async (data: Object, exp: number) => {
   const config = getConfig()
-  const token = jsonwebtoken.sign(data, config.secret, {
+  const token = jsonwebtoken.sign(data, config.secret!, {
     expiresIn: exp || 86400,
     audience: config.apiUrl,
     issuer: config.apiUrl,
@@ -35,7 +35,7 @@ export const isAuthenticated = (
   if (token) {
     jsonwebtoken.verify(
       token,
-      config.secret,
+      config.secret!,
       {
         issuer: config.apiUrl,
         audience: config.apiUrl,

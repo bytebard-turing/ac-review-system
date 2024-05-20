@@ -30,7 +30,7 @@ export const init = (router: Router, app: Application) => {
   app.use(
     cookieSession({
       name: "session",
-      keys: [config.secret],
+      keys: [config.secret!],
       // Cookie Options
       maxAge: 86400, // 24 hours
     })

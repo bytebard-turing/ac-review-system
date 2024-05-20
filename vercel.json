@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "build/**/*": {
+      "maxDuration": 300 
+    }
+  },
   "builds": [
     {
       "src": "build/index.js",

@@ -8,10 +8,11 @@ import contentLength from "express-content-length-validator";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import { config } from "../utils";
+import { getConfig } from "../utils";
 import { CodeSampleRouter } from "../api/code-edit-sample/code-edit-sample.route";
 
 export const init = (router: Router, app: Application) => {
+  const config = getConfig()
   app.use(compression());
   app.use(
     bodyParser.urlencoded({

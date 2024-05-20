@@ -1,9 +1,10 @@
 import Redis from "ioredis";
-import { config } from "../utils";
+import { getConfig } from "../utils";
 
 let client: Redis.Redis;
 
 export const initiateConnection = async () => {
+  const config = getConfig();
   console.log(`Config`, JSON.stringify(config))
   client = new Redis(
     `rediss://default:${config.redisPassword}@${config.redisServer}:${config.redisPort}`

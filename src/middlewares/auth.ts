@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jsonwebtoken, { JwtPayload, VerifyCallback } from "jsonwebtoken";
-import { config } from "../utils";
+import { getConfig } from "../utils";
 import { CacheService } from "../services";
 
 export const authenticate = async (data: Object, exp: number) => {
+  const config = getConfig()
   const token = jsonwebtoken.sign(data, config.secret, {
     expiresIn: exp || 86400,
     audience: config.apiUrl,
@@ -28,6 +29,7 @@ export const isAuthenticated = (
   res: Response,
   next: NextFunction
 ) => {
+  const config = getConfig()
   const token = (req.headers["Authorization"] ||
     req.headers["authorization"]) as unknown as string;
   if (token) {

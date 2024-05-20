@@ -1,7 +1,6 @@
 {
   "functions": {
     "build/index.js": {
-      "runtime": "@vercel/node",
       "maxDuration": 60
     }
   },

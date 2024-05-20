@@ -1,6 +1,6 @@
 {
   "functions": {
-    "build/index.js": {
+    "build/**/*": {
       "maxDuration": 60
     }
   },

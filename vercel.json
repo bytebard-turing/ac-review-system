@@ -1,6 +1,6 @@
 {
   "functions": {
-    "build/**/*": {
+    "build/api/*.js": {
       "maxDuration": 60
     }
   },

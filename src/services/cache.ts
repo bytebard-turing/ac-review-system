@@ -13,6 +13,14 @@ export const initiateConnection = async () => {
     throw err;
   });
   await client.connect();
+  setInterval(async () => {
+    try {
+      await client.ping();
+      console.log("Client is connected");
+    } catch (err) {
+      console.error(err);
+    }
+  }, 300000); // Ping every 300 seconds
 };
 
 class RawCacheService {

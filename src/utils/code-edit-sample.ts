@@ -1,3 +1,6 @@
+import { getUsernameFromEmail } from "./common";
+import { getConfig } from "./config";
+
 const EEventType = {
   Edit: "edit",
   Completion: "completion",
@@ -150,12 +153,17 @@ export const getReviewPropMap = () => ({
 });
 
 export const wrapResultWithPermission = (response: any, user: any) => {
+  const config = getConfig();
   const reviewerData = response.reviewerData || {};
-  const canRead = user.email?.includes("turing.com") || false;
+  const canRead = true;
+  const canReview =
+    user.email?.includes(reviewerData?.currentAssignedTo) ||
+    config.adminList?.includes(user.email!);
   const canEdit =
-    user.email?.includes(reviewerData.reviewerTwoAssignee) ||
-    user.email?.includes(reviewerData.finalReviewer);
-  return { ...response, canEdit, canRead };
+    user.email?.includes(reviewerData?.author?.email) ||
+    user.email?.includes(reviewerData?.author?.username) ||
+    config.adminList?.includes(user.email!);
+  return { ...response, permission: { canEdit, canRead, canReview } };
 };
 
 export const isFinalReviewer = (email: string, reviewerData: any) => {
@@ -173,30 +181,31 @@ export const isFirstReviewer = (email: string, reviewerData: any) => {
 export const getReviewerMetadata = (reviewerData: any, email: string) => {
   if (!reviewerData) return {};
   const result = {
-    level: 2,
+    level: 1,
     reviewStatus: "Pending",
     reviewComment: "",
+    sampleStatus: reviewerData.currentStatus || reviewerData.status,
     assignee: "",
     author: reviewerData.reviewerOneAssignee,
     authorComment: reviewerData.reviewerOneComment,
   };
-
-  if (isFinalReviewer(email, reviewerData)) {
-    return {
-      ...result,
-      level: 3,
-      assignee: reviewerData.finalReviewer,
-      reviewComment: reviewerData.finalReviewerComment,
-      reviewStatus: reviewerData.finalReviewerStatus,
-    };
-  }
-  if (isSecondReviewer(email, reviewerData)) {
+  if (reviewerData.reviewerTwoStatus !== "Approved") {
     return {
       ...result,
       level: 2,
       assignee: reviewerData.reviewerTwoAssignee,
       reviewComment: reviewerData.reviewerTwoComment,
       reviewStatus: reviewerData.reviewerTwoStatus,
+    };
+  }
+
+  if (reviewerData.reviewerTwoStatus === "Approved") {
+    return {
+      ...result,
+      level: 3,
+      assignee: reviewerData.finalReviewer,
+      reviewComment: reviewerData.finalReviewerComment,
+      reviewStatus: reviewerData.finalReviewerStatus,
     };
   }
   return result;

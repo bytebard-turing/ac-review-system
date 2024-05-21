@@ -3,6 +3,7 @@ import { CodeSampleController } from "./code-edit-sample.controller";
 
 export const CodeSampleRouter = (router: Router) => {
   router.get("/api/code-samples", CodeSampleController.getFiles);
-  router.post("/api/code-samples/view", CodeSampleController.getFile);
+  router.get("/api/code-samples/:id/edit", CodeSampleController.getFileById);
   router.post("/api/code-samples/save", CodeSampleController.saveReview);
+
 };

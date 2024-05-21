@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { Priority, Status } from "../types";
 export const mysql_real_escape_string = (str: string) => {
   return  `${str}`.replace(/[^-.:@_*#/&\w\s]/g, "");
 };

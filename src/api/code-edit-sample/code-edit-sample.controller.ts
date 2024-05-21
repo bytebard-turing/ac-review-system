@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import moment from "moment";
-import { Task, User } from "../../types";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { Storage, File, FileMetadata } from "@google-cloud/storage";
+import { Storage, File } from "@google-cloud/storage";
 import {
+  getConfig,
   getReviewPropMap,
   getReviewerMetadata,
-  getUsernameFromEmail,
   isFinalReviewer,
   isFirstReviewer,
   isSecondReviewer,
@@ -16,7 +15,7 @@ import {
   wrapResultWithPermission,
 } from "../../utils";
 
-const prefix = "to_augment_ai_review_bucket";
+const prefix = "to_augment_ai_review_bucket_v2";
 const bucketName = "augment_ai";
 
 const fileFilterPredicate = (
@@ -24,7 +23,7 @@ const fileFilterPredicate = (
   prefix: string,
   beforeDate: string
 ) => {
-  const [folderDate, username] = file.name.replace(`${prefix}/`, "").split("_");
+  const [folderDate] = file.name.replace(`${prefix}/`, "").split("_");
   return folderDate >= beforeDate;
 };
 
@@ -58,48 +57,68 @@ class RawCodeSampleController extends Storage {
       return {
         id,
         name: file.name,
+        fileId: name.replace(".json", ""),
         updated: file.metadata.updated,
-        ...getReviewerMetadata(reviewerData, req.decoded?.email!)
+        reviewerData,
       };
     });
 
-    const createdSamples = result.filter((rec: any) => req.decoded?.email!.includes(rec.author))
-    const reviewRequestedSamples = result.filter((rec: any) => req.decoded?.email!.includes(rec.assignee))
+    const { adminList } = getConfig();
+    const createdSamples = result.filter((rec: any) =>
+      req.decoded?.email!.includes(rec.reviewerData?.author)
+    );
+    const reviewRequestedSamples = result.filter(
+      (rec: any) =>
+        req.decoded?.email!.includes(rec.reviewerData?.currentAssignedTo) ||
+        adminList?.includes(req.decoded?.email!)
+    );
 
     res.status(200).json({
       data: {
         reviewRequestedSamples,
-        createdSamples
+        createdSamples,
       },
       message: "",
     });
     next();
   };
 
-  public getFile = async (
+  public getFileById = async (
     req: Request & { decoded?: { email: string } },
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const { id, name } = req.body;
-      const { json: result, metadata } = await this.downloadFile(name);
-      const response = wrapResultWithPermission(
-        mapPayloadToObject(result, getReviewPropMap()),
+      let { id } = req.params;
+      if (!id) {
+        return res.status(400).json({
+          data: "",
+          message: "id is missing.",
+        });
+      }
+      if (!id?.includes(".json")) {
+        id = `${id}.json`;
+      }
+      const { json: result } = await this.downloadFile(`${prefix}/${id}`);
+
+      const { reviewerData, permission, ...rest } = wrapResultWithPermission(
+        result,
         req.decoded
       );
+      const viewerData = mapPayloadToObject(rest, getReviewPropMap());
       res.status(200).json({
         data: {
-          ...response,
-          id,
-          name,
+          ...result,
+          reviewerData: { ...reviewerData, permission },
+          viewerData,
+          fileId: id,
         },
         message: "",
       });
-    } catch {
+    } catch (err: any) {
       res.status(400).json({
         data: null,
-        message: "Bad Request",
+        message: err?.message,
       });
     }
     next();
@@ -111,48 +130,17 @@ class RawCodeSampleController extends Storage {
     next: NextFunction
   ) => {
     try {
-      const { reviewStatus, reviewComment, reviewerData, id, name } = req.body;
+      const { reviewStatus, reviewComment, reviewerData, id, name, fileId } =
+        req.body;
       const user = req.decoded?.email as string;
-      let result: any;
-      if (isFinalReviewer(user, reviewerData)) {
-        result = {
-          ...reviewerData,
-          finalReviewerStatus: reviewStatus,
-          finalReviewerComment: reviewComment,
-          updated: new Date().toISOString(),
-        };
-      } else if (isSecondReviewer(user, reviewerData)) {
-        result = {
-          ...reviewerData,
-          reviewerTwoStatus: reviewStatus,
-          reviewerTwoComment: reviewComment,
-          updated: new Date().toISOString(),
-        };
-      } else if (isFirstReviewer(user, reviewerData)) {
-        result = {
-          ...reviewerData,
-          reviewerOneStatus: reviewStatus,
-          reviewerOneComment: reviewComment,
-          updated: new Date().toISOString(),
-        };
-      }
-      if (result) {
-        const { json } = await this.downloadFile(name);
-        const payload = {
-          ...json,
-          reviewerData: {
-            ...result,
-            lastModifedBy: req.decoded?.email,
-            lastUpdated: new Date().toISOString(),
-          },
-        };
-        const fileResult = await this.uploadFile(id, name, payload);
+      console.log(req.body)
 
-        res.status(200).json({
-          data: fileResult,
-          message: "",
-        });
-      }
+      // const fileResult = await this.uploadFile(id, name, payload);
+
+      // res.status(200).json({
+      //   data: fileResult,
+      //   message: "",
+      // });
     } catch (err) {
       res.status(400).json({
         data: null,
